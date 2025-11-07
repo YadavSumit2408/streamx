@@ -1,6 +1,7 @@
 
 
-import '../../core/utils/constants.dart';
+import 'dart:developer';
+
 import '../models/movie_model.dart';
 import '../services/api_service.dart';
 
@@ -17,19 +18,40 @@ class MovieRemoteDataSourceImpl implements MovieRemoteDataSource {
 
   @override
   Future<List<MovieModel>> getTrendingMovies() async {
-    final response = await apiService.getTrendingMovies(ApiConstants.apiKey);
-    return response.results;
+    try {
+      print("🔹 Fetching trending movies...");
+      final response = await apiService.getTrendingMovies();
+      print("✅ Trending fetched: ${response.results.length}");
+      return response.results;
+    } catch (e, s) {
+      log("❌ Trending movies fetch failed: $e", stackTrace: s);
+      rethrow;
+    }
   }
 
   @override
   Future<List<MovieModel>> getNowPlayingMovies() async {
-    final response = await apiService.getNowPlayingMovies(ApiConstants.apiKey);
-    return response.results;
+    try {
+      print("🔹 Fetching now playing movies...");
+      final response = await apiService.getNowPlayingMovies();
+      print("✅ Now Playing fetched: ${response.results.length}");
+      return response.results;
+    } catch (e, s) {
+      log("❌ Now Playing fetch failed: $e", stackTrace: s);
+      rethrow;
+    }
   }
 
   @override
   Future<List<MovieModel>> searchMovies(String query) async {
-    final response = await apiService.searchMovies(ApiConstants.apiKey, query);
-    return response.results;
+    try {
+      print("🔹 Searching movies...");
+      final response = await apiService.searchMovies(query);
+      print("✅ Search fetched: ${response.results.length}");
+      return response.results;
+    } catch (e, s) {
+      log("❌ Search fetch failed: $e", stackTrace: s);
+      rethrow;
+    }
   }
 }

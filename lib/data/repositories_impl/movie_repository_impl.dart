@@ -1,5 +1,4 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
-
 import '../../domain/repositories/movie_repository.dart';
 import '../models/movie_model.dart';
 import '../sources/movie_local_data_source.dart';

@@ -21,9 +21,9 @@ class _ApiService implements ApiService {
   String? baseUrl;
 
   @override
-  Future<MovieResponse> getTrendingMovies(apiKey) async {
+  Future<MovieResponse> getTrendingMovies() async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'api_key': apiKey};
+    final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio
@@ -44,9 +44,9 @@ class _ApiService implements ApiService {
   }
 
   @override
-  Future<MovieResponse> getNowPlayingMovies(apiKey) async {
+  Future<MovieResponse> getNowPlayingMovies() async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'api_key': apiKey};
+    final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio
@@ -67,15 +67,9 @@ class _ApiService implements ApiService {
   }
 
   @override
-  Future<MovieResponse> searchMovies(
-    apiKey,
-    query,
-  ) async {
+  Future<MovieResponse> searchMovies(query) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{
-      r'api_key': apiKey,
-      r'query': query,
-    };
+    final queryParameters = <String, dynamic>{r'query': query};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio
@@ -96,12 +90,9 @@ class _ApiService implements ApiService {
   }
 
   @override
-  Future<MovieModel> getMovieDetails(
-    movieId,
-    apiKey,
-  ) async {
+  Future<MovieModel> getMovieDetails(movieId) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'api_key': apiKey};
+    final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio
