@@ -4,7 +4,6 @@ import '../models/movie_model.dart';
 import '../sources/movie_local_data_source.dart';
 import '../sources/movie_remote_data_source.dart';
 
-
 class MovieRepositoryImpl implements MovieRepository {
   final MovieRemoteDataSource remoteDataSource;
   final MovieLocalDataSource localDataSource;
@@ -21,12 +20,12 @@ class MovieRepositoryImpl implements MovieRepository {
     final connectionResult = await connectivity.checkConnectivity();
 
     if (connectionResult != ConnectivityResult.none) {
-      // Online
+      print("🌐 Online – fetching trending from API");
       final remoteMovies = await remoteDataSource.getTrendingMovies();
       await localDataSource.cacheTrendingMovies(remoteMovies);
       return remoteMovies;
     } else {
-      // Offline
+      print("⚠️ Offline – loading trending from cache");
       return await localDataSource.getCachedTrendingMovies();
     }
   }
@@ -36,10 +35,12 @@ class MovieRepositoryImpl implements MovieRepository {
     final connectionResult = await connectivity.checkConnectivity();
 
     if (connectionResult != ConnectivityResult.none) {
+      print("🌐 Online – fetching now playing from API");
       final remoteMovies = await remoteDataSource.getNowPlayingMovies();
       await localDataSource.cacheNowPlayingMovies(remoteMovies);
       return remoteMovies;
     } else {
+      print("⚠️ Offline – loading now playing from cache");
       return await localDataSource.getCachedNowPlayingMovies();
     }
   }
@@ -51,7 +52,7 @@ class MovieRepositoryImpl implements MovieRepository {
     if (connectionResult != ConnectivityResult.none) {
       return await remoteDataSource.searchMovies(query);
     } else {
-      // Optional: could filter cached movies for offline search
+      // Optional offline search
       final cached = await localDataSource.getCachedTrendingMovies();
       return cached
           .where((movie) =>

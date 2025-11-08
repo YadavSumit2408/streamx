@@ -1,9 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-
-import '../screens/bookmarks_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/search_screen.dart';
+import '../screens/bookmarks_screen.dart';
 
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({Key? key}) : super(key: key);
@@ -24,80 +23,90 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true, // ✅ allows body content to extend behind nav bar
+      extendBody: true, // ✅ allows content to scroll behind the bar
+      resizeToAvoidBottomInset: false, // ✅ prevents shifting when keyboard opens
       body: Stack(
+        fit: StackFit.expand,
         children: [
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: _pages[_currentIndex],
           ),
 
-          // 🌫 Floating Glass Nav Bar — does NOT push content up
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 18,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(30),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                child: Container(
-                  height: 68,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.15),
-                      width: 1.2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: BottomNavigationBar(
-                    backgroundColor: Colors.transparent,
-                    elevation: 0,
-                    type: BottomNavigationBarType.fixed,
-                    currentIndex: _currentIndex,
-                    showSelectedLabels: false,
-                    showUnselectedLabels: false,
-                    selectedItemColor: Colors.redAccent,
-                    unselectedItemColor: Colors.white.withOpacity(0.6),
-                    onTap: (index) => setState(() => _currentIndex = index),
-                    items: const [
-                      BottomNavigationBarItem(
-                        icon: Icon(Icons.home_rounded, size: 26),
-                        label: "Home",
-                      ),
-                      BottomNavigationBarItem(
-                        icon: Icon(Icons.explore_rounded, size: 26),
-                        label: "Explore",
-                      ),
-                      BottomNavigationBarItem(
-                        icon: Icon(Icons.favorite_rounded, size: 26),
-                        label: "Favs",
-                      ),
-                     
-                    ],
-                    selectedIconTheme: const IconThemeData(
-                      color: Colors.redAccent,
-                      shadows: [
-                        Shadow(
-                          color: Colors.redAccent,
-                          blurRadius: 15,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+          // 🧊 Floating nav bar — absolutely fixed at bottom
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+              child: _buildGlassNavBar(context),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGlassNavBar(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            height: 68,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.12),
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: BottomNavigationBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              type: BottomNavigationBarType.fixed,
+              currentIndex: _currentIndex,
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
+              selectedItemColor: Colors.redAccent,
+              unselectedItemColor: Colors.white.withOpacity(0.7),
+              onTap: (index) => setState(() => _currentIndex = index),
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_rounded, size: 26),
+                  label: "Home",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.explore_rounded, size: 26),
+                  label: "Explore",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.bookmark_rounded, size: 26),
+                  label: "Bookmarks",
+                ),
+              
+              ],
+              selectedIconTheme: const IconThemeData(
+                color: Colors.redAccent,
+                shadows: [
+                  Shadow(
+                    color: Colors.redAccent,
+                    blurRadius: 16,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
