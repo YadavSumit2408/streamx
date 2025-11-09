@@ -21,14 +21,22 @@ class MovieResponse {
 @JsonSerializable()
 class MovieModel {
   final int id;
+
   @JsonKey(name: 'title')
   final String? title;
+
   @JsonKey(name: 'poster_path')
   final String? posterPath;
+
+  @JsonKey(name: 'backdrop_path')
+  final String? backdropPath;
+
   @JsonKey(name: 'overview')
   final String? overview;
+
   @JsonKey(name: 'vote_average')
   final double? rating;
+
   @JsonKey(name: 'release_date')
   final String? releaseDate;
 
@@ -36,6 +44,7 @@ class MovieModel {
     required this.id,
     this.title,
     this.posterPath,
+    this.backdropPath,
     this.overview,
     this.rating,
     this.releaseDate,

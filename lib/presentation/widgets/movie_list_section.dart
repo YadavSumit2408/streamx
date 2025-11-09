@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/utils/constants.dart';
 import '../../data/models/movie_model.dart';
@@ -40,18 +40,42 @@ class MovieListSection extends StatelessWidget {
             itemCount: movies.length,
             itemBuilder: (context, index) {
               final movie = movies[index];
+              final posterUrl = movie.posterPath != null
+                  ? "${ApiConstants.imageBaseUrl}${movie.posterPath}"
+                  : null;
+
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    "${ApiConstants.imageBaseUrl}${movie.posterPath}",
-                    fit: BoxFit.cover,
+                  child: SizedBox(
                     width: 120,
-                    loadingBuilder: (context, child, progress) =>
-                        progress == null
-                            ? child
-                            : const Center(child: CircularProgressIndicator()),
+                    height: 180,
+                    child: posterUrl != null
+                        ? CachedNetworkImage(
+                            imageUrl: posterUrl,
+                            fit: BoxFit.cover,
+                            width: 120,
+                            height: 180,
+                            placeholder: (context, url) => Container(
+                              color: Colors.grey[850],
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Image.asset(
+                              'assets/images/placeholder.png',
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Image.asset(
+                            'assets/images/placeholder.png',
+                            fit: BoxFit.cover,
+                          ),
                   ),
                 ),
               );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/utils/constants.dart';
 import '../../data/models/movie_model.dart';
-
 
 class MovieBannerWidget extends StatefulWidget {
   final List<MovieModel> movies;
@@ -53,9 +53,14 @@ class _MovieBannerWidgetState extends State<MovieBannerWidget> {
         itemBuilder: (context, index) {
           final movie = movies[index];
 
-          
-          final scale = (1 - (_currentPage - index).abs() * 0.2).clamp(0.8, 1.0);
-          final opacity = (1 - (_currentPage - index).abs() * 0.6).clamp(0.0, 1.0);
+          final posterUrl = movie.posterPath != null
+              ? "${ApiConstants.imageBaseUrl}${movie.posterPath}"
+              : null;
+
+          final scale =
+              (1 - (_currentPage - index).abs() * 0.2).clamp(0.8, 1.0);
+          final opacity =
+              (1 - (_currentPage - index).abs() * 0.6).clamp(0.0, 1.0);
 
           return Transform.scale(
             scale: scale,
@@ -66,16 +71,35 @@ class _MovieBannerWidgetState extends State<MovieBannerWidget> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(18),
-                    child: Image.network(
-                      "${ApiConstants.imageBaseUrl}${movie.posterPath}",
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: 330,
-                      loadingBuilder: (context, child, progress) =>
-                          progress == null
-                              ? child
-                              : const Center(child: CircularProgressIndicator()),
-                    ),
+                    child: posterUrl != null
+                        ? CachedNetworkImage(
+                            imageUrl: posterUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: 330,
+                            placeholder: (context, url) => Container(
+                              color: Colors.grey[850],
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Image.asset(
+                              'assets/images/placeholder.png',
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 330,
+                            ),
+                          )
+                        : Image.asset(
+                            'assets/images/placeholder.png',
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: 330,
+                          ),
                   ),
                   Container(
                     height: 330,

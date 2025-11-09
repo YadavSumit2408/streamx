@@ -21,10 +21,8 @@ class MovieLocalDataSourceImpl implements MovieLocalDataSource {
   Future<void> cacheTrendingMovies(List<MovieModel> movies) async {
     try {
       await trendingBox.clear(); // ✅ avoid duplicate data
-      await trendingBox.put(
-        'trending',
-        movies.map((m) => m.toJson()).toList(),
-      );
+     await trendingBox.put('trending', movies.map((m) => m.toJson()).toList());
+
       print("💾 Cached trending movies: ${movies.length}");
     } catch (e) {
       print("⚠️ Error caching trending movies: $e");

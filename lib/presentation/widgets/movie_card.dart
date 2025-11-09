@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:streamx/data/models/movie_model.dart';
-
 import '../../core/utils/constants.dart';
+import '../../data/models/movie_model.dart';
 
 class MovieCard extends StatelessWidget {
   final MovieModel movie;
@@ -16,12 +15,7 @@ class MovieCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (_) => MovieDetailScreen(movie: movie),
-        //   ),
-        // );
+        // Navigate to details if you want
       },
       child: Container(
         width: 140,
@@ -32,17 +26,31 @@ class MovieCard extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: CachedNetworkImage(
-            imageUrl: posterUrl ?? "",
-            fit: BoxFit.cover,
-            placeholder: (context, url) => Container(
-              color: Colors.grey[800],
-            ),
-            errorWidget: (context, url, error) => const Icon(
-              Icons.broken_image,
-              color: Colors.grey,
-            ),
-          ),
+          child: posterUrl != null
+              ? CachedNetworkImage(
+                  imageUrl: posterUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[800],
+                    child: const Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Image.asset(
+                    'assets/images/placeholder.png',
+                    fit: BoxFit.cover,
+                  ),
+                )
+              : Image.asset(
+                  'assets/images/placeholder.png',
+                  fit: BoxFit.cover,
+                ),
         ),
       ),
     );
