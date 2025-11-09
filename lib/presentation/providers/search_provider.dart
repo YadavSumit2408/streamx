@@ -1,41 +1,48 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-
+import 'package:flutter/material.dart';
 import '../../data/models/movie_model.dart';
-import '../../domain/use_cases/search_movies_usecase.dart';
+import '../../domain/repositories/movie_repository.dart';
 
 class SearchProvider extends ChangeNotifier {
-  final SearchMoviesUseCase searchMoviesUseCase;
+  final MovieRepository repository;
+  List<MovieModel> _results = [];
+  bool _isLoading = false;
 
-  SearchProvider(this.searchMoviesUseCase);
-
-  List<MovieModel> searchResults = [];
-  bool isLoading = false;
-  String? errorMessage;
   Timer? _debounce;
 
-  void search(String query) {
-    if (query.isEmpty) {
-      searchResults = [];
-      notifyListeners();
-      return;
-    }
+  List<MovieModel> get results => _results;
+  bool get isLoading => _isLoading;
 
-    _debounce?.cancel();
+  SearchProvider(this.repository);
+
+  void searchMovies(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
     _debounce = Timer(const Duration(milliseconds: 600), () async {
-      try {
-        isLoading = true;
+      if (query.isEmpty) {
+        _results = [];
         notifyListeners();
+        return;
+      }
 
-        final results = await searchMoviesUseCase.call(query);
-        searchResults = results;
-        isLoading = false;
-        notifyListeners();
-      } catch (e) {
-        isLoading = false;
-        errorMessage = e.toString();
+      _isLoading = true;
+      notifyListeners();
+
+      try {
+        final movies = await repository.searchMovies(query);
+        _results = movies;
+      } catch (_) {
+        _results = [];
+      } finally {
+        _isLoading = false;
         notifyListeners();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
   }
 }

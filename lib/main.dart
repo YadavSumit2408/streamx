@@ -3,10 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:streamx/data/sources/favorites_local_data_source.dart';
+import 'package:streamx/presentation/providers/bookmark_provider.dart';
 import 'package:streamx/presentation/providers/movie_provider.dart';
+import 'package:streamx/presentation/providers/search_provider.dart';
 import 'package:streamx/presentation/screens/home_screen.dart';
 import 'package:streamx/presentation/widgets/bottom_nav_bar.dart';
 
+import 'data/repositories_impl/favorites_repository_impl.dart';
 import 'data/repositories_impl/movie_repository_impl.dart';
 import 'data/services/api_service.dart';
 import 'data/sources/movie_local_data_source.dart';
@@ -33,6 +37,10 @@ void main() async {
     localDataSource: local,
     connectivity: Connectivity(),
   );
+  final favoritesBox = await Hive.openBox('favorites');
+  final favoritesRepository = FavoritesRepositoryImpl(
+    localDataSource: FavoritesLocalDataSourceImpl(favoritesBox: favoritesBox),
+  );
 
   runApp(
     MultiProvider(
@@ -42,6 +50,13 @@ void main() async {
             getTrendingMoviesUseCase: GetTrendingMoviesUseCase(repo),
             getNowPlayingMoviesUseCase: GetNowPlayingMoviesUseCase(repo),
           ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => FavoritesProvider(repository: favoritesRepository)
+            ..loadFavorites(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SearchProvider(repo),
         ),
       ],
       child: const StreamixApp(),

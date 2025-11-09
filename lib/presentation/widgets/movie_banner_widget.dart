@@ -4,6 +4,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/utils/constants.dart';
 import '../../data/models/movie_model.dart';
 
+import '../screens/movie_detail_screen.dart';
+
 class MovieBannerWidget extends StatefulWidget {
   final List<MovieModel> movies;
 
@@ -46,90 +48,111 @@ class _MovieBannerWidgetState extends State<MovieBannerWidget> {
     }
 
     return SizedBox(
-      height: 340,
+      height: 360, // ⬆️ slightly taller for better layout
       child: PageView.builder(
         controller: _pageController,
         itemCount: movies.length,
         itemBuilder: (context, index) {
           final movie = movies[index];
-
           final posterUrl = movie.posterPath != null
               ? "${ApiConstants.imageBaseUrl}${movie.posterPath}"
               : null;
 
-          final scale =
-              (1 - (_currentPage - index).abs() * 0.2).clamp(0.8, 1.0);
-          final opacity =
-              (1 - (_currentPage - index).abs() * 0.6).clamp(0.0, 1.0);
+          final scale = (1 - (_currentPage - index).abs() * 0.2).clamp(0.8, 1.0);
+          final opacity = (1 - (_currentPage - index).abs() * 0.6).clamp(0.0, 1.0);
 
-          return Transform.scale(
-            scale: scale,
-            child: Opacity(
-              opacity: opacity,
-              child: Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: posterUrl != null
-                        ? CachedNetworkImage(
-                            imageUrl: posterUrl,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: 330,
-                            placeholder: (context, url) => Container(
-                              color: Colors.grey[850],
-                              child: const Center(
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MovieDetailPage(movie: movie),
+                ),
+              );
+            },
+            child: Transform.scale(
+              scale: scale,
+              child: Opacity(
+                opacity: opacity,
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    // Poster
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: posterUrl != null
+                          ? CachedNetworkImage(
+                              imageUrl: posterUrl,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 350,
+                              placeholder: (context, url) => Container(
+                                color: Colors.grey[850],
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
                                 ),
                               ),
-                            ),
-                            errorWidget: (context, url, error) => Image.asset(
+                              errorWidget: (context, url, error) => Image.asset(
+                                'assets/images/placeholder.png',
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: 350,
+                              ),
+                            )
+                          : Image.asset(
                               'assets/images/placeholder.png',
                               fit: BoxFit.cover,
                               width: double.infinity,
-                              height: 330,
+                              height: 350,
                             ),
-                          )
-                        : Image.asset(
-                            'assets/images/placeholder.png',
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: 330,
+                    ),
+
+                    // Gradient overlay
+                    Container(
+                      height: 350,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            Colors.black.withOpacity(0.8),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Title
+                    Positioned(
+                      bottom: 30, // ⬆️ creates pseudo-space above the edge
+                      left: 20,
+                      right: 20,
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          maxHeight: 60, // ⬆️ prevents text overflow
+                        ),
+                        child: Text(
+                          movie.title ?? "",
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            height: 1.3,
+                            letterSpacing: 0.3,
                           ),
-                  ),
-                  Container(
-                    height: 330,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.8),
-                          Colors.transparent,
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    bottom: 20,
-                    left: 20,
-                    right: 20,
-                    child: Text(
-                      movie.title ?? "",
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
