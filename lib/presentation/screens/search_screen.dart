@@ -72,34 +72,38 @@ class SearchScreen extends StatelessWidget {
                           itemCount: provider.results.length,
                           itemBuilder: (context, index) {
                             final movie = provider.results[index];
-                            final posterUrl = movie.posterPath != null
-                                ? "${ApiConstants.imageBaseUrl}${movie.posterPath}"
-                                : null;
+                            // ✅ USE THE HELPER METHOD HERE
+                            final poster = ApiConstants.posterOrPlaceholder(movie.posterPath);
 
                             return ClipRRect(
                               borderRadius: BorderRadius.circular(10),
-                              child: CachedNetworkImage(
-                                imageUrl: posterUrl ?? "",
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => Container(
-                                  color: Colors.grey[850],
-                                  child: const Center(
-                                    child: SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.redAccent,
+                              child: ApiConstants.isLocalAsset(poster)
+                                  ? Image.asset(
+                                      poster,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : CachedNetworkImage(
+                                      imageUrl: poster,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => Container(
+                                        color: Colors.grey[850],
+                                        child: const Center(
+                                          child: SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.redAccent,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) =>
+                                          Image.asset(
+                                        "assets/images/placeholder.jpg",
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
-                                  ),
-                                ),
-                                errorWidget: (context, url, error) =>
-                                    Image.asset(
-                                  "assets/images/placeholder.jpg",
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
                             );
                           },
                         ),
@@ -116,19 +120,13 @@ class SearchScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-            "assets/images/placeholder.jpg",
-            width: 120,
-            color: Colors.white10,
+          Icon(
+            Icons.search_off,
+            color: Colors.white24,
+            size: 80,
           ),
-          const SizedBox(height: 16),
-          const Text(
-            "No movies found",
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 16,
-            ),
-          ),
+        
+          
           const SizedBox(height: 6),
           const Text(
             "Try searching for something else 🎥",

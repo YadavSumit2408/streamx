@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
 import '../../core/utils/constants.dart';
 import '../../data/models/movie_model.dart';
+import '../screens/movie_detail_screen.dart';
 
 class MovieListSection extends StatelessWidget {
   final String title;
@@ -44,38 +44,51 @@ class MovieListSection extends StatelessWidget {
                   ? "${ApiConstants.imageBaseUrl}${movie.posterPath}"
                   : null;
 
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    width: 120,
-                    height: 180,
-                    child: posterUrl != null
-                        ? CachedNetworkImage(
-                            imageUrl: posterUrl,
-                            fit: BoxFit.cover,
-                            width: 120,
-                            height: 180,
-                            placeholder: (context, url) => Container(
-                              color: Colors.grey[850],
-                              child: const Center(
-                                child: SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MovieDetailPage(movie: movie),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      width: 120,
+                      height: 180,
+                      child: posterUrl != null
+                          ? CachedNetworkImage(
+                              imageUrl: posterUrl,
+                              fit: BoxFit.cover,
+                              width: 120,
+                              height: 180,
+                              placeholder: (context, url) => Container(
+                                color: Colors.grey[850],
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.red,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                            errorWidget: (context, url, error) => Image.asset(
+                              errorWidget: (context, url, error) => Image.asset(
+                                'assets/images/placeholder.jpg',
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Image.asset(
                               'assets/images/placeholder.jpg',
                               fit: BoxFit.cover,
                             ),
-                          )
-                        : Image.asset(
-                            'assets/images/placeholder.jpg',
-                            fit: BoxFit.cover,
-                          ),
+                    ),
                   ),
                 ),
               );

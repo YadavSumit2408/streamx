@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-
 import '../../core/utils/constants.dart';
 import '../../data/models/movie_model.dart';
 import '../providers/bookmark_provider.dart';
@@ -14,7 +13,6 @@ class MovieDetailPage extends StatefulWidget {
 
   const MovieDetailPage({Key? key, required this.movie}) : super(key: key);
 
-  // ✅ Named constructor for deep-link or offline open
   factory MovieDetailPage.fromId(int id) {
     // You can later replace this with actual local/Hive fetch
     return MovieDetailPage(
@@ -54,13 +52,42 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
     }
   }
 
+  void _shareMovie() {
+    final movie = widget.movie;
+    final deepLink = "streamx://movie/${movie.id}";
+    
+    // Build a more descriptive share message
+    final shareText = StringBuffer();
+    shareText.writeln("🎬 ${movie.title}");
+    
+    if (movie.rating != null && movie.rating! > 0) {
+      shareText.writeln("⭐ ${movie.rating!.toStringAsFixed(1)}/10");
+    }
+    
+    if (movie.releaseDate?.isNotEmpty == true) {
+      shareText.writeln("📅 ${movie.releaseDate}");
+    }
+    
+    if (movie.overview?.isNotEmpty == true) {
+      final shortOverview = movie.overview!.length > 100 
+          ? "${movie.overview!.substring(0, 100)}..." 
+          : movie.overview!;
+      shareText.writeln("\n$shortOverview");
+    }
+    
+    shareText.writeln("\n🔗 Open in StreamX: $deepLink");
+    
+    Share.share(
+      shareText.toString(),
+      subject: "Watch ${movie.title} on StreamX",
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final movie = widget.movie;
-
-    final posterUrl = movie.posterPath != null
-        ? "${ApiConstants.imageBaseUrl}${movie.posterPath}"
-        : "https://placehold.co/400x600/png?text=No+Image";
+    // ✅ USE HELPER METHOD
+    final posterUrl = ApiConstants.posterOrPlaceholder(movie.posterPath);
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -75,35 +102,37 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.share, color: Colors.white),
-            onPressed: () {
-              final deepLink = "streamx://movie/${widget.movie.id}";
-              Share.share(
-                "🎬 Check out this movie on StreamX!\n\n${movie.title}\n\n$deepLink",
-                subject: "Watch ${movie.title} on StreamX",
-              );
-            },
+            onPressed: _shareMovie,
           ),
         ],
       ),
       body: Stack(
         children: [
-          // 🎞 Background Poster
-          CachedNetworkImage(
-            imageUrl: posterUrl,
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-            placeholder: (context, url) =>
-                const Center(child: CircularProgressIndicator()),
-            errorWidget: (context, url, error) => Image.asset(
-              'assets/images/placeholder.jpg',
+          // Background blurred poster
+          if (!ApiConstants.isLocalAsset(posterUrl))
+            CachedNetworkImage(
+              imageUrl: posterUrl,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              placeholder: (context, url) =>
+                  const Center(child: CircularProgressIndicator(color: Colors.red)),
+              errorWidget: (context, url, error) => Image.asset(
+                'assets/images/placeholder.jpg',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              ),
+            )
+          else
+            Image.asset(
+              posterUrl,
               fit: BoxFit.cover,
               width: double.infinity,
               height: double.infinity,
             ),
-          ),
 
-          // 🎬 Blur Overlay
+          // Blur Overlay
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -113,39 +142,46 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
             ),
           ),
 
-          // 🧱 Content Layer
+          // Content Layer
           SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 🎞 Poster
+                // Movie Poster
                 Hero(
                   tag: "poster_${movie.id}",
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: CachedNetworkImage(
-                      imageUrl: posterUrl,
-                      width: 220,
-                      height: 330,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        width: 220,
-                        height: 330,
-                        color: Colors.grey[850],
-                      ),
-                      errorWidget: (context, url, error) => Image.asset(
-                        'assets/images/placeholder..jpg',
-                        width: 220,
-                        height: 330,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                    child: ApiConstants.isLocalAsset(posterUrl)
+                        ? Image.asset(
+                            posterUrl,
+                            width: 220,
+                            height: 330,
+                            fit: BoxFit.cover,
+                          )
+                        : CachedNetworkImage(
+                            imageUrl: posterUrl,
+                            width: 220,
+                            height: 330,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              width: 220,
+                              height: 330,
+                              color: Colors.grey[850],
+                            ),
+                            errorWidget: (context, url, error) => Image.asset(
+                              'assets/images/placeholder.jpg',
+                              width: 220,
+                              height: 330,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 25),
 
-                // 🎬 Title
+                // Title
                 Text(
                   movie.title ?? "Untitled",
                   textAlign: TextAlign.center,
@@ -158,7 +194,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                 ),
                 const SizedBox(height: 10),
 
-                // ⭐ Rating + 📅 Date
+                // Rating & Release Date
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -182,7 +218,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                 ),
                 const SizedBox(height: 25),
 
-                // 📝 Overview
+                // Overview
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Text(
@@ -198,7 +234,7 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
                 ),
                 const SizedBox(height: 40),
 
-                // ❤️ Favorite Button
+                // Favorite Button
                 _loadingFavStatus
                     ? const CircularProgressIndicator(color: Colors.redAccent)
                     : ElevatedButton.icon(

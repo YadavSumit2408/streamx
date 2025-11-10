@@ -10,9 +10,7 @@ class MovieCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final posterUrl = movie.posterPath != null
-        ? "${ApiConstants.imageBaseUrl}${movie.posterPath}"
-        : "https://via.placeholder.com/200x300.png?text=No+Image";
+    final poster = ApiConstants.posterOrPlaceholder(movie.posterPath);
 
     return GestureDetector(
       onTap: () {
@@ -32,13 +30,17 @@ class MovieCard extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: CachedNetworkImage(
-            imageUrl: posterUrl,
-            fit: BoxFit.cover,
-            placeholder: (context, url) => Container(color: Colors.grey[800]),
-            errorWidget: (context, url, error) =>
-                const Icon(Icons.broken_image, color: Colors.grey),
-          ),
+          child: ApiConstants.isLocalAsset(poster)
+              ? Image.asset(poster, fit: BoxFit.cover)
+              : CachedNetworkImage(
+                  imageUrl: poster,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) =>
+                      Container(color: Colors.grey[800]),
+                  errorWidget: (context, url, error) =>
+                      Image.asset('assets/images/placeholder.jpg',
+                          fit: BoxFit.cover),
+                ),
         ),
       ),
     );

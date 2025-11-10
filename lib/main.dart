@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -20,34 +21,21 @@ import 'data/sources/movie_remote_data_source.dart';
 import 'domain/use_cases/get_now_playing_movies_usecase.dart';
 import 'domain/use_cases/get_trending_movies_usecase.dart';
 
-
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
 
-   const platform = MethodChannel('fake_deeplink_channel');
-  platform.setMethodCallHandler((call) async {
-    if (call.method == 'openDeepLink') {
-      final uri = Uri.parse(call.arguments);
-      if (uri.scheme == 'streamx' && uri.host == 'movie') {
-        final movieId = int.tryParse(uri.pathSegments.first ?? '');
-        if (movieId != null) {
-          navigatorKey.currentState?.pushNamed(
-            '/movieDetail',
-            arguments: movieId,
-          );
-        }
-      }
-    }
-  });
+  // Setup deep link handler
+  _setupDeepLinkChannel();
 
-  
+  // Open Hive boxes
   final trendingBox = await Hive.openBox('trendingBox');
   final nowPlayingBox = await Hive.openBox('nowPlayingBox');
+  final favoritesBox = await Hive.openBox('favorites');
 
+  // Setup Dio and API Service
   final dio = Dio();
   dio.httpClientAdapter.close(force: true);
   final apiService = ApiService(dio);
@@ -61,7 +49,7 @@ void main() async {
     localDataSource: local,
     connectivity: Connectivity(),
   );
-  final favoritesBox = await Hive.openBox('favorites');
+
   final favoritesRepository = FavoritesRepositoryImpl(
     localDataSource: FavoritesLocalDataSourceImpl(favoritesBox: favoritesBox),
   );
@@ -88,6 +76,53 @@ void main() async {
   );
 }
 
+// Platform channel for deep links
+void _setupDeepLinkChannel() {
+  const platform = MethodChannel('com.streamx.deeplink/channel');
+  
+  platform.setMethodCallHandler((call) async {
+    if (call.method == 'handleDeepLink') {
+      final String? link = call.arguments as String?;
+      if (link != null) {
+        debugPrint("🔗 Received deep link: $link");
+        _handleDeepLink(link);
+      }
+    }
+  });
+}
+
+void _handleDeepLink(String link) {
+  try {
+    final uri = Uri.parse(link);
+    
+    // Check if it's our streamx scheme
+    if (uri.scheme == 'streamx' && uri.host == 'movie') {
+      if (uri.pathSegments.isNotEmpty) {
+        final movieId = int.tryParse(uri.pathSegments.first);
+        
+        if (movieId != null) {
+          debugPrint("🎬 Navigating to movie ID: $movieId");
+          
+          // Add delay to ensure navigator is ready
+          Future.delayed(const Duration(milliseconds: 300), () {
+            navigatorKey.currentState?.push(
+              MaterialPageRoute(
+                builder: (_) => MovieDetailPage.fromId(movieId),
+              ),
+            );
+          });
+        } else {
+          debugPrint("❌ Invalid movie ID in deep link");
+        }
+      }
+    } else {
+      debugPrint("❌ Unknown deep link format: $link");
+    }
+  } catch (e) {
+    debugPrint("❌ Error handling deep link: $e");
+  }
+}
+
 class StreamixApp extends StatelessWidget {
   const StreamixApp({Key? key}) : super(key: key);
 
@@ -96,12 +131,12 @@ class StreamixApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
-  routes: {
-    '/movieDetail': (context) {
-      final movieId = ModalRoute.of(context)!.settings.arguments as int;
-      return MovieDetailPage.fromId(movieId);
-    },
-  },
+      routes: {
+        '/movieDetail': (context) {
+          final movieId = ModalRoute.of(context)!.settings.arguments as int;
+          return MovieDetailPage.fromId(movieId);
+        },
+      },
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF121212),
         primaryColor: Colors.redAccent,

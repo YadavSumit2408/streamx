@@ -7,4 +7,15 @@ class ApiConstants {
   static const String nowPlayingMovies = "/movie/now_playing";
   static const String searchMovies = "/search/movie";
   static const String movieDetails = "/movie";
+  static String posterOrPlaceholder(String? posterPath) {
+    if (posterPath == null) return 'assets/images/placeholder.jpg';
+    final trimmed = posterPath.trim();
+    if (trimmed.isEmpty) return 'assets/images/placeholder.jpg';
+    if (trimmed == 'null') return 'assets/images/placeholder.jpg';
+    if (trimmed.startsWith('http')) return trimmed;
+    return "$imageBaseUrl$trimmed";
+  }
+
+  /// Helper to check if returned value is an asset (local) or network
+  static bool isLocalAsset(String urlOrAsset) => urlOrAsset.startsWith('assets/');
 }
