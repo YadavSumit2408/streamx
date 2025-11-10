@@ -37,7 +37,7 @@ void main() async {
 
   // Setup Dio and API Service
   final dio = Dio();
-  dio.httpClientAdapter.close(force: true);
+  // Remove the force close - it causes issues
   final apiService = ApiService(dio);
   final remote = MovieRemoteDataSourceImpl(apiService);
   final local = MovieLocalDataSourceImpl(
@@ -61,7 +61,7 @@ void main() async {
           create: (_) => MovieProvider(
             getTrendingMoviesUseCase: GetTrendingMoviesUseCase(repo),
             getNowPlayingMoviesUseCase: GetNowPlayingMoviesUseCase(repo),
-          ),
+          )..fetchMovies(), // Load movies after provider is created
         ),
         ChangeNotifierProvider(
           create: (_) => FavoritesProvider(repository: favoritesRepository)
