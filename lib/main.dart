@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -8,6 +9,7 @@ import 'package:streamx/presentation/providers/bookmark_provider.dart';
 import 'package:streamx/presentation/providers/movie_provider.dart';
 import 'package:streamx/presentation/providers/search_provider.dart';
 import 'package:streamx/presentation/screens/home_screen.dart';
+import 'package:streamx/presentation/screens/movie_detail_screen.dart';
 import 'package:streamx/presentation/widgets/bottom_nav_bar.dart';
 
 import 'data/repositories_impl/favorites_repository_impl.dart';
@@ -18,9 +20,31 @@ import 'data/sources/movie_remote_data_source.dart';
 import 'domain/use_cases/get_now_playing_movies_usecase.dart';
 import 'domain/use_cases/get_trending_movies_usecase.dart';
 
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+
+   const platform = MethodChannel('fake_deeplink_channel');
+  platform.setMethodCallHandler((call) async {
+    if (call.method == 'openDeepLink') {
+      final uri = Uri.parse(call.arguments);
+      if (uri.scheme == 'streamx' && uri.host == 'movie') {
+        final movieId = int.tryParse(uri.pathSegments.first ?? '');
+        if (movieId != null) {
+          navigatorKey.currentState?.pushNamed(
+            '/movieDetail',
+            arguments: movieId,
+          );
+        }
+      }
+    }
+  });
+
+  
   final trendingBox = await Hive.openBox('trendingBox');
   final nowPlayingBox = await Hive.openBox('nowPlayingBox');
 
@@ -71,6 +95,13 @@ class StreamixApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
+  routes: {
+    '/movieDetail': (context) {
+      final movieId = ModalRoute.of(context)!.settings.arguments as int;
+      return MovieDetailPage.fromId(movieId);
+    },
+  },
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF121212),
         primaryColor: Colors.redAccent,

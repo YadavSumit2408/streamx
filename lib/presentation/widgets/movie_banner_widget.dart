@@ -97,14 +97,14 @@ class _MovieBannerWidgetState extends State<MovieBannerWidget> {
                                 ),
                               ),
                               errorWidget: (context, url, error) => Image.asset(
-                                'assets/images/placeholder.png',
+                                'assets/images/placeholder.jpg',
                                 fit: BoxFit.cover,
                                 width: double.infinity,
                                 height: 350,
                               ),
                             )
                           : Image.asset(
-                              'assets/images/placeholder.png',
+                              'assets/images/placeholder.jpg',
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: 350,

@@ -68,12 +68,12 @@ class MovieListSection extends StatelessWidget {
                               ),
                             ),
                             errorWidget: (context, url, error) => Image.asset(
-                              'assets/images/placeholder.png',
+                              'assets/images/placeholder.jpg',
                               fit: BoxFit.cover,
                             ),
                           )
                         : Image.asset(
-                            'assets/images/placeholder.png',
+                            'assets/images/placeholder.jpg',
                             fit: BoxFit.cover,
                           ),
                   ),
